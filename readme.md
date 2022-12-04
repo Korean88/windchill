@@ -4,6 +4,11 @@
    - trust.jks
    - doc_numbers.txt
    - run.bat
-2. Run the app by launching 
+3. Modify 
+> doc_numbers.txt
+
+List the document numbers, each on a new line
+
+4. Run the app by launching 
 > run.bat
-3. Enter your password at the prompt, hit Enter
+5. Enter your username and password at the prompt, confirm by hitting ENTER
