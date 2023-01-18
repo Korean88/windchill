@@ -24,7 +24,7 @@ import static java.lang.String.format;
 @Slf4j
 public class Runner implements CommandLineRunner {
 
-    private static final String FILENAME = "doc_numbers.txt";
+    static final String FILENAME = "doc_numbers.txt";
 
     @Autowired
     private DocumentDownloadService documentDownloadService;
@@ -38,6 +38,8 @@ public class Runner implements CommandLineRunner {
                 HashSet<String> lines = new HashSet<>(Files.readAllLines(path));
                 if (lines.iterator().hasNext()) {
                     System.setProperty("windchill.auth.token", lines.iterator().next());
+                    System.setProperty("name", "");
+                    System.setProperty("password", "");
                 } else {
                     setLoginCreds();
                 }
@@ -67,6 +69,7 @@ public class Runner implements CommandLineRunner {
         if (!CollectionUtils.isEmpty(docNumbers)) {
                 docNumbers.stream()
                         .filter(s -> !StringUtils.isBlank(s))
+                        .map(String::trim)
                         .forEach( number -> {
                             try {
                                 documentDownloadService.downloadFile(number);

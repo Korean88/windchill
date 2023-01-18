@@ -4,11 +4,13 @@
    - trust.jks
    - doc_numbers.txt
    - run.bat
-3. Modify 
+   - token.temp
+2. Modify 
 > doc_numbers.txt
 
 List the document numbers, each on a new line
 
-4. Run the app by launching 
+3. Run the app by launching 
 > run.bat
-5. Enter your username and password at the prompt, confirm by hitting ENTER
+4. If prompted, enter your username and password. Confirm by hitting ENTER.
+6. IMPORTANT: The file token.temp contains user credentials. DO NOT SHARE THE FILE token.temp!!! If your user credentials get changed the file should be updated or removed.
