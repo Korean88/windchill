@@ -39,7 +39,7 @@ public class DocumentDownloadService {
     }
 
     public void downloadFile(String number) {
-        log.debug("File download initiated for document number {}", number);
+        log.info("File download initiated for document number {}", number);
         Optional<String> objectId = objectService.fetchObjectId(WT_DOC_WTDOCUMENT, number);
         if (objectId.isPresent()) {
             Optional<URI> uri = uriBuilderService

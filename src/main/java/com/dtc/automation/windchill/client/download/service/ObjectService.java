@@ -41,12 +41,14 @@ public class ObjectService {
             if (responseEntity.getStatusCode() == HttpStatus.OK && responseEntity.getBody() != null) {
                 List<WtDocumentObject> documentObjects = responseEntity.getBody();
                 if (!CollectionUtils.isEmpty(documentObjects)) {
-                    if (documentObjects.size() > 1) {
-                        log.warn("Returned more than 1 documents with number {}. Documents returned: {}. " +
-                                "Will skip...", number, documentObjects);
-                    } else {
+//                    if (documentObjects.size() > 1) {
+//                        log.warn("Returned more than 1 documents with number {}. Documents returned: {}. " +
+//                                "Will skip...", number, documentObjects);
+//                    } else {
                         objectId = Optional.of(documentObjects.get(0).getId());
-                    }
+//                    }
+                } else {
+                    log.warn("No document ids were received for document number {}. Will skip...", number);
                 }
             } else {
                 log.warn("Fetch Object Id by number {} failed. {}", number, responseEntity);

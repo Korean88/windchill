@@ -32,10 +32,10 @@ public class Runner implements CommandLineRunner {
     private FileReaderService fileReaderService;
 
     public static void main(String[] args) {
-        Path path = Paths.get("token.temp");
-        if (Files.exists(path)) {
+        Path tokenPath = Paths.get("token.temp");
+        if (Files.exists(tokenPath)) {
             try {
-                HashSet<String> lines = new HashSet<>(Files.readAllLines(path));
+                HashSet<String> lines = new HashSet<>(Files.readAllLines(tokenPath));
                 if (lines.iterator().hasNext()) {
                     System.setProperty("windchill.auth.token", lines.iterator().next());
                     System.setProperty("name", "");
