@@ -19,7 +19,7 @@
     </Appenders>
     <Loggers>
         <Logger name="com.dtc.automation.windchill.client.download"
-                level="debug" additivity="false">
+                level="info" additivity="false">
             <AppenderRef ref="FileAppender"/>
             <AppenderRef ref="ConsoleAppender"/>
         </Logger>

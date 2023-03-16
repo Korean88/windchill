@@ -1,5 +1,6 @@
 package com.dtc.automation.windchill.client.download.service;
 
+import com.dtc.automation.windchill.client.download.model.SearchObjectResponse;
 import com.dtc.automation.windchill.client.download.model.WtDocumentObject;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.ParameterizedTypeReference;
@@ -34,11 +35,11 @@ public class ObjectService {
             headers.setAccept(Arrays.asList(MediaType.APPLICATION_JSON, MediaType.ALL));
             HttpEntity<String> httpEntity = new HttpEntity<>(headers);
             log.debug("Will execute GET request to {}", fetchObjectIdUri.get());
-            ResponseEntity<List<WtDocumentObject>> responseEntity = restTemplate
+            ResponseEntity<SearchObjectResponse> responseEntity = restTemplate
                     .exchange(fetchObjectIdUri.get(), HttpMethod.GET, httpEntity,
-                            new ParameterizedTypeReference<List<WtDocumentObject>>() {});
+                            new ParameterizedTypeReference<SearchObjectResponse>() {});
             if (responseEntity.getStatusCode() == HttpStatus.OK && responseEntity.getBody() != null) {
-                List<WtDocumentObject> documentObjects = responseEntity.getBody();
+                List<WtDocumentObject> documentObjects = responseEntity.getBody().getItems();
                 if (!CollectionUtils.isEmpty(documentObjects)) {
                     if (documentObjects.size() > 1) {
                         log.info("Returned more than 1 documents with number {}. Documents returned: {}. " +
