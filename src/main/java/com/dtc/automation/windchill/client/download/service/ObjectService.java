@@ -26,8 +26,8 @@ public class ObjectService {
         this.uriBuilderService = uriBuilderService;
     }
 
-    public Optional<String> fetchObjectId(String typeId, String number) {
-        Optional<String> objectId = Optional.empty();
+    public Optional<WtDocumentObject> fetchObject(String typeId, String number) {
+        Optional<WtDocumentObject> wtObject = Optional.empty();
         Optional<URI> fetchObjectIdUri = uriBuilderService.createFetchObjectIdUri(typeId, number);
         if (fetchObjectIdUri.isPresent()) {
             HttpHeaders headers = new HttpHeaders();
@@ -36,8 +36,7 @@ public class ObjectService {
             log.debug("Will execute GET request to {}", fetchObjectIdUri.get());
             ResponseEntity<List<WtDocumentObject>> responseEntity = restTemplate
                     .exchange(fetchObjectIdUri.get(), HttpMethod.GET, httpEntity,
-                            new ParameterizedTypeReference<List<WtDocumentObject>>() {
-                            });
+                            new ParameterizedTypeReference<List<WtDocumentObject>>() {});
             if (responseEntity.getStatusCode() == HttpStatus.OK && responseEntity.getBody() != null) {
                 List<WtDocumentObject> documentObjects = responseEntity.getBody();
                 if (!CollectionUtils.isEmpty(documentObjects)) {
@@ -45,7 +44,7 @@ public class ObjectService {
                         log.info("Returned more than 1 documents with number {}. Documents returned: {}. " +
                                 "Will take the 1st document from the list", number, documentObjects);
                     }
-                    objectId = Optional.of(documentObjects.get(0).getId());
+                    wtObject = Optional.of(documentObjects.get(0));
                 } else {
                     log.warn("No document ids were received for document number {}. Will skip...", number);
                 }
@@ -53,6 +52,6 @@ public class ObjectService {
                 log.warn("Fetch Object Id by number {} failed. {}", number, responseEntity);
             }
         }
-        return objectId;
+        return wtObject;
     }
 }

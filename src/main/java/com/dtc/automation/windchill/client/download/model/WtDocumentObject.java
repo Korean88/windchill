@@ -10,5 +10,7 @@ public class WtDocumentObject {
     private String typeId;
     @JsonProperty(value = "id")
     private String id;
+    @JsonProperty(value = "attributes")
+    private ObjectAttributes objectAttributes;
 
 }

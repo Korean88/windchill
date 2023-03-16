@@ -23,7 +23,8 @@ class UriBuilderServiceTest {
         Optional<URI> fetchObjectIdUri = uriBuilderService.createFetchObjectIdUri(typeId, docNumber);
 
         assertTrue(fetchObjectIdUri.isPresent());
-        assertEquals("https://windchill.jnj.com:443/Windchill/servlet/rest/objects?typeId=typeId&$filter=number%20eq%20'012'", fetchObjectIdUri.get().toString());
+        assertEquals("https://windchill.jnj.com:443/Windchill/servlet/rest/search/objects?typeId=typeId&$select=state,version,fileName&$filter=number%20eq%20'012'",
+                fetchObjectIdUri.get().toString());
     }
 
     @ParameterizedTest

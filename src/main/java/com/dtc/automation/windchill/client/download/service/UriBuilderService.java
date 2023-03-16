@@ -20,8 +20,9 @@ public class UriBuilderService {
                     .scheme("https")
                     .host("windchill.jnj.com")
                     .port(443)
-                    .path("Windchill/servlet/rest/objects")
+                    .path("Windchill/servlet/rest/search/objects")
                     .queryParam("typeId", "{typeId}")
+                    .queryParam("$select", "state,version,fileName")
                     .queryParam("$filter", "number eq '{documentNumber}'")
                     .buildAndExpand(typeId, documentNumber);
             res = Optional.of(uriComponents.toUri());
@@ -34,7 +35,7 @@ public class UriBuilderService {
 
     public Optional<URI> createDownloadFileUri(String id, String filename) {
         Optional<URI> res = Optional.empty();
-        if (!StringUtils.isBlank(id) && !StringUtils.isBlank(filename)) {
+        if (!StringUtils.isEmpty(id) && !StringUtils.isEmpty(filename)) {
             UriComponents uriComponents = UriComponentsBuilder.newInstance()
                     .scheme("https")
                     .host("windchill.jnj.com")

@@ -1,6 +1,7 @@
 package com.dtc.automation.windchill.client.download.service;
 
-import com.dtc.automation.windchill.client.download.context.ContextDataMap;
+import com.dtc.automation.windchill.client.download.model.ObjectAttributes;
+import com.dtc.automation.windchill.client.download.model.WtDocumentObject;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -16,7 +17,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -33,7 +33,7 @@ class DocumentDownloadServiceTest {
     @Mock
     private UriBuilderService uriBuilderService;
     @Mock
-    private ContextDataMap contextDataMap;
+    private FilenameUtils filenameUtils;
 
     @InjectMocks
     private DocumentDownloadService documentDownloadService;
@@ -42,16 +42,15 @@ class DocumentDownloadServiceTest {
     public void shouldDownloadFileIfFound() throws IOException {
         String number = "012";
         String docId = "345";
-        when(objectService.fetchObjectId(DocumentDownloadService.WT_DOC_WTDOCUMENT, number))
-                .thenReturn(Optional.of(docId));
+        WtDocumentObject wtDocumentObject = createWtDocumentObject(docId);
+        String filename = "document, V.5 In work.txt";
+        when(filenameUtils.modifyFilename(wtDocumentObject)).thenReturn(Optional.of(filename));
+        when(objectService.fetchObject(DocumentDownloadService.WT_DOC_WTDOCUMENT, number))
+                .thenReturn(Optional.of(wtDocumentObject));
         URI downloadUri = URI.create("https://windchill.jnj.com/download");
-        when(uriBuilderService.createDownloadFileUri(docId, number + ".doc"))
+        when(uriBuilderService.createDownloadFileUri(docId, filename))
                 .thenReturn(Optional.of(downloadUri));
         HttpHeaders responseHeaders = new HttpHeaders();
-        String filename = "document.txt";
-        HashMap<String, String> contextData = new HashMap<>();
-        contextData.put("_filename", filename);
-        when(contextDataMap.getData()).thenReturn(contextData);
         ResponseEntity<byte[]> byteResponseEntity = new ResponseEntity<>("abc".getBytes(StandardCharsets.UTF_8), responseHeaders, HttpStatus.OK);
         HttpHeaders requestHeaders = new HttpHeaders();
         requestHeaders.setAccept(Arrays.asList(MediaType.APPLICATION_JSON,
@@ -73,16 +72,15 @@ class DocumentDownloadServiceTest {
     public void shouldNotDownloadFileIfEndpointReturns500() {
         String number = "012";
         String docId = "345";
-        when(objectService.fetchObjectId(DocumentDownloadService.WT_DOC_WTDOCUMENT, number))
-                .thenReturn(Optional.of(docId));
+        WtDocumentObject wtDocumentObject = createWtDocumentObject(docId);
+        String filename = "document, V.5 In work.txt";
+        when(filenameUtils.modifyFilename(wtDocumentObject)).thenReturn(Optional.of(filename));
+        when(objectService.fetchObject(DocumentDownloadService.WT_DOC_WTDOCUMENT, number))
+                .thenReturn(Optional.of(wtDocumentObject));
         URI downloadUri = URI.create("https://windchill.jnj.com/download");
-        when(uriBuilderService.createDownloadFileUri(docId, number + ".doc"))
+        when(uriBuilderService.createDownloadFileUri(docId, filename))
                 .thenReturn(Optional.of(downloadUri));
         HttpHeaders responseHeaders = new HttpHeaders();
-//        String filename = "document.txt";
-//        HashMap<String, String> contextData = new HashMap<>();
-//        contextData.put("_filename", filename);
-//        when(contextDataMap.getData()).thenReturn(contextData);
         ResponseEntity<byte[]> byteResponseEntity = new ResponseEntity<>("abc".getBytes(StandardCharsets.UTF_8), responseHeaders, HttpStatus.INTERNAL_SERVER_ERROR);
         HttpHeaders requestHeaders = new HttpHeaders();
         requestHeaders.setAccept(Arrays.asList(MediaType.APPLICATION_JSON,
@@ -94,6 +92,17 @@ class DocumentDownloadServiceTest {
         documentDownloadService.downloadFile(number);
 
         assertFalse(Files.exists(Paths.get("download")));
+    }
+
+    private WtDocumentObject createWtDocumentObject(String docId) {
+        WtDocumentObject wtDocumentObject = new WtDocumentObject();
+        wtDocumentObject.setId(docId);
+        ObjectAttributes objectAttributes = new ObjectAttributes();
+        objectAttributes.setFileName("dcoument.txt");
+        objectAttributes.setVersion("V.5");
+        objectAttributes.setState("In work");
+        wtDocumentObject.setObjectAttributes(objectAttributes);
+        return wtDocumentObject;
     }
 
 }

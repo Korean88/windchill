@@ -12,9 +12,11 @@ import org.springframework.util.CollectionUtils;
 
 import java.io.Console;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Base64;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -37,9 +39,7 @@ public class Runner implements CommandLineRunner {
             try {
                 HashSet<String> lines = new HashSet<>(Files.readAllLines(tokenPath));
                 if (lines.iterator().hasNext()) {
-                    System.setProperty("windchill.auth.token", lines.iterator().next());
-                    System.setProperty("name", "");
-                    System.setProperty("password", "");
+                    System.setProperty("token.encoded", lines.iterator().next());
                 } else {
                     setLoginCreds();
                 }
@@ -57,10 +57,11 @@ public class Runner implements CommandLineRunner {
 
     private static void setLoginCreds() {
         Console console = System.console();
-        String name = console.readLine("Enter username: ");
-        System.setProperty("name", name);
+        StringBuilder name = new StringBuilder(console.readLine("Enter username: "));
         char[] password = console.readPassword("Enter password: ");
-        System.setProperty("password", new String(password));
+        name.append(":").append(password);
+        String tokenEncoded = Base64.getEncoder().encodeToString(name.toString().getBytes(StandardCharsets.UTF_8));
+        System.setProperty("token.encoded", tokenEncoded);
     }
 
     @Override
