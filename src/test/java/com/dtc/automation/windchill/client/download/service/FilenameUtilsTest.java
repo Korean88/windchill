@@ -16,6 +16,7 @@ public class FilenameUtilsTest {
 
     @Test
     public void shouldAppendVersionAndStateToOriginalFilename_ifFilenameValid() {
+        String docNumber = "103541130";
         ObjectAttributes objectAttributes = new ObjectAttributes();
         String origFilename = "103541130-Rev-F---CONDUIT-LLIF-RTM";
         objectAttributes.setFileName(origFilename + ".xlsx");
@@ -26,10 +27,29 @@ public class FilenameUtilsTest {
         wtDocumentObject.setId("test_id_1");
         wtDocumentObject.setTypeId("test_type_id_1");
 
-        Optional<String> resultOpt = filenameUtils.modifyFilename(wtDocumentObject);
+        Optional<String> resultOpt = filenameUtils.modifyFilename(wtDocumentObject, docNumber);
 
         assertTrue(resultOpt.isPresent());
-        assertEquals(origFilename + ", " + "V.5 In work.xlsx", resultOpt.get());
+        assertEquals(origFilename + ", V.5 In work.xlsx", resultOpt.get());
+    }
+
+    @Test
+    public void shouldAppendDocNumberToOriginalFilename_ifFilenameValidAndDoesNotContainDocNumber() {
+        String docNumber = "103541130";
+        ObjectAttributes objectAttributes = new ObjectAttributes();
+        String origFilename = "Rev-F---CONDUIT-LLIF-RTM";
+        objectAttributes.setFileName(origFilename + ".xlsx");
+        objectAttributes.setState("In work");
+        objectAttributes.setVersion("V.5");
+        WtDocumentObject wtDocumentObject = new WtDocumentObject();
+        wtDocumentObject.setObjectAttributes(objectAttributes);
+        wtDocumentObject.setId("test_id_1");
+        wtDocumentObject.setTypeId("test_type_id_1");
+
+        Optional<String> resultOpt = filenameUtils.modifyFilename(wtDocumentObject, docNumber);
+
+        assertTrue(resultOpt.isPresent());
+        assertEquals(docNumber + " " + origFilename + ", V.5 In work.xlsx", resultOpt.get());
     }
 
     @ParameterizedTest
@@ -44,7 +64,7 @@ public class FilenameUtilsTest {
         wtDocumentObject.setId("test_id_1");
         wtDocumentObject.setTypeId("test_type_id_1");
 
-        Optional<String> resultOpt = filenameUtils.modifyFilename(wtDocumentObject);
+        Optional<String> resultOpt = filenameUtils.modifyFilename(wtDocumentObject, "123");
 
         assertFalse(resultOpt.isPresent());
     }

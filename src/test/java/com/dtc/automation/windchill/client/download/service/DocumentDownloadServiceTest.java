@@ -44,7 +44,7 @@ class DocumentDownloadServiceTest {
         String docId = "345";
         WtDocumentObject wtDocumentObject = createWtDocumentObject(docId);
         String filename = "document, V.5 In work.txt";
-        when(filenameUtils.modifyFilename(wtDocumentObject)).thenReturn(Optional.of(filename));
+        when(filenameUtils.modifyFilename(wtDocumentObject, number)).thenReturn(Optional.of(filename));
         when(objectService.fetchObject(DocumentDownloadService.WT_DOC_WTDOCUMENT, number))
                 .thenReturn(Optional.of(wtDocumentObject));
         URI downloadUri = URI.create("https://windchill.jnj.com/download");
@@ -74,7 +74,7 @@ class DocumentDownloadServiceTest {
         String docId = "345";
         WtDocumentObject wtDocumentObject = createWtDocumentObject(docId);
         String filename = "document, V.5 In work.txt";
-        when(filenameUtils.modifyFilename(wtDocumentObject)).thenReturn(Optional.of(filename));
+        when(filenameUtils.modifyFilename(wtDocumentObject, number)).thenReturn(Optional.of(filename));
         when(objectService.fetchObject(DocumentDownloadService.WT_DOC_WTDOCUMENT, number))
                 .thenReturn(Optional.of(wtDocumentObject));
         URI downloadUri = URI.create("https://windchill.jnj.com/download");

@@ -46,7 +46,7 @@ public class DocumentDownloadService {
         Optional<WtDocumentObject> wtDocumentObjectOpt = objectService.fetchObject(WT_DOC_WTDOCUMENT, number);
         if (wtDocumentObjectOpt.isPresent()) {
             WtDocumentObject wtDocumentObject = wtDocumentObjectOpt.get();
-            Optional<String> filenameOpt = filenameUtils.modifyFilename(wtDocumentObject);
+            Optional<String> filenameOpt = filenameUtils.modifyFilename(wtDocumentObject, number);
             if (filenameOpt.isPresent()) {
                 String filename = filenameOpt.get();
                 Optional<URI> uri = uriBuilderService.createDownloadFileUri(wtDocumentObject.getId(), filename);

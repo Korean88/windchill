@@ -13,14 +13,18 @@ import java.util.regex.Pattern;
 @Slf4j
 public class FilenameUtils {
 
-    public Optional<String> modifyFilename(WtDocumentObject wtDocumentObject) {
+    public Optional<String> modifyFilename(WtDocumentObject wtDocumentObject, String docNumber) {
         ObjectAttributes objectAttributes = wtDocumentObject.getObjectAttributes();
         Pattern pattern = Pattern.compile("^(.+)\\.(\\w+)$");
-        Matcher matcher = pattern.matcher(objectAttributes.getFileName());
+        String fileName = objectAttributes.getFileName();
+        Matcher matcher = pattern.matcher(fileName);
         Optional<String> res = Optional.empty();
         if (matcher.matches()) {
             String docName = matcher.group(1);
             String extension = matcher.group(2);
+            if (!fileName.contains(docNumber)) {
+                docName = docNumber + " " + docName;
+            }
             res = Optional.of(docName + ", " + objectAttributes.getVersion() + " " + objectAttributes.getState() + "." + extension);
         } else {
             log.warn("Could not get filename for document {}", wtDocumentObject);
