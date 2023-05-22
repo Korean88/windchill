@@ -24,8 +24,6 @@ import static java.lang.String.format;
 @Slf4j
 public class DocumentDownloadService {
 
-    static final String WT_DOC_WTDOCUMENT = "wt.doc.WTDocument";
-
     private final ObjectService objectService;
     private final UriBuilderService uriBuilderService;
     private final RestTemplate restTemplate;
@@ -41,40 +39,40 @@ public class DocumentDownloadService {
         this.filenameUtils = filenameUtils;
     }
 
-    public void downloadFile(String number) {
+    public boolean downloadFile(WtDocumentObject wtDocumentObject, String number) {
+        boolean res = false;
         log.info("File download initiated for document number {}", number);
-        Optional<WtDocumentObject> wtDocumentObjectOpt = objectService.fetchObject(WT_DOC_WTDOCUMENT, number);
-        if (wtDocumentObjectOpt.isPresent()) {
-            WtDocumentObject wtDocumentObject = wtDocumentObjectOpt.get();
-            Optional<String> filenameOpt = filenameUtils.modifyFilename(wtDocumentObject, number);
-            if (filenameOpt.isPresent()) {
-                String filename = filenameOpt.get();
-                Optional<URI> uri = uriBuilderService.createDownloadFileUri(wtDocumentObject.getId(), filename);
-                if (uri.isPresent()) {
-                    HttpHeaders headers = new HttpHeaders();
-                    headers.setAccept(Arrays.asList(MediaType.APPLICATION_JSON, MediaType.APPLICATION_OCTET_STREAM, MediaType.ALL));
-                    HttpEntity<String> httpEntity = new HttpEntity<>(headers);
-                    log.debug("Will execute GET request to {}", uri.get());
-                    ResponseEntity<byte[]> responseEntity = restTemplate.exchange(uri.get(), HttpMethod.GET, httpEntity, byte[].class);
-                    if (responseEntity.getStatusCode() == HttpStatus.OK && responseEntity.hasBody()) {
-                        log.debug("ResponseEntity: {}", responseEntity);
-                        try {
-                            Path downloadPath = Paths.get("download", number);
-                            Files.createDirectories(downloadPath);
-                            Path filePath = Paths.get(downloadPath.toString(), filename);
-                            Files.write(filePath, responseEntity.getBody(), StandardOpenOption.CREATE);
-                            log.info("Successfully stored file {} for document number {}", filename, number);
-                        } catch (IOException e) {
-                            log.error(format("Could not save file %s. Document number: %s", filename, number), e);
-                        }
-                    } else {
-                        log.warn("Could not download file by document number {}. ResponseEntity: {}",
-                                number, responseEntity);
+        Optional<String> filenameOpt = filenameUtils.modifyFilename(wtDocumentObject, number);
+        if (filenameOpt.isPresent()) {
+            String filename = filenameOpt.get();
+            Optional<URI> uri = uriBuilderService.createDownloadFileUri(wtDocumentObject.getId(), filename);
+            if (uri.isPresent()) {
+                HttpHeaders headers = new HttpHeaders();
+                headers.setAccept(Arrays.asList(MediaType.APPLICATION_JSON, MediaType.APPLICATION_OCTET_STREAM, MediaType.ALL));
+                HttpEntity<String> httpEntity = new HttpEntity<>(headers);
+                log.debug("Will execute GET request to {}", uri.get());
+                ResponseEntity<byte[]> responseEntity = restTemplate.exchange(uri.get(), HttpMethod.GET, httpEntity, byte[].class);
+                if (responseEntity.getStatusCode() == HttpStatus.OK && responseEntity.hasBody()) {
+                    log.debug("ResponseEntity: {}", responseEntity);
+                    try {
+                        Path downloadPath = Paths.get("download", number);
+                        Files.createDirectories(downloadPath);
+                        Path filePath = Paths.get(downloadPath.toString(), filename);
+                        Files.write(filePath, responseEntity.getBody(), StandardOpenOption.CREATE);
+                        log.info("Successfully stored file {} for document number {}", filename, number);
+                        res = true;
+                    } catch (IOException e) {
+                        log.error(format("Could not save file %s. Document number: %s", filename, number), e);
                     }
+                } else {
+                    log.warn("Could not download file by document number {}. ResponseEntity: {}",
+                            number, responseEntity);
                 }
-            } else {
-                log.error("Could not get filename, will skip document with number {}", number);
             }
+        } else {
+            log.error("Could not get filename, will skip document with number {}", number);
         }
+        return res;
     }
+
 }

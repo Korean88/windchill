@@ -45,8 +45,6 @@ class DocumentDownloadServiceTest {
         WtDocumentObject wtDocumentObject = createWtDocumentObject(docId);
         String filename = "document, V.5 In work.txt";
         when(filenameUtils.modifyFilename(wtDocumentObject, number)).thenReturn(Optional.of(filename));
-        when(objectService.fetchObject(DocumentDownloadService.WT_DOC_WTDOCUMENT, number))
-                .thenReturn(Optional.of(wtDocumentObject));
         URI downloadUri = URI.create("https://windchill.jnj.com/download");
         when(uriBuilderService.createDownloadFileUri(docId, filename))
                 .thenReturn(Optional.of(downloadUri));
@@ -60,8 +58,9 @@ class DocumentDownloadServiceTest {
                 .thenReturn(byteResponseEntity);
         Path filePath = Paths.get("download", number, filename);
 
-        documentDownloadService.downloadFile(number);
+        boolean res = documentDownloadService.downloadFile(wtDocumentObject, number);
 
+        assertTrue(res);
         assertTrue(Files.exists(filePath));
         Files.delete(Paths.get(filePath.toString()));
         Files.delete(Paths.get("download", number));
@@ -75,8 +74,6 @@ class DocumentDownloadServiceTest {
         WtDocumentObject wtDocumentObject = createWtDocumentObject(docId);
         String filename = "document, V.5 In work.txt";
         when(filenameUtils.modifyFilename(wtDocumentObject, number)).thenReturn(Optional.of(filename));
-        when(objectService.fetchObject(DocumentDownloadService.WT_DOC_WTDOCUMENT, number))
-                .thenReturn(Optional.of(wtDocumentObject));
         URI downloadUri = URI.create("https://windchill.jnj.com/download");
         when(uriBuilderService.createDownloadFileUri(docId, filename))
                 .thenReturn(Optional.of(downloadUri));
@@ -89,7 +86,7 @@ class DocumentDownloadServiceTest {
         when(restTemplate.exchange(downloadUri, HttpMethod.GET, requestEntity, byte[].class))
                 .thenReturn(byteResponseEntity);
 
-        documentDownloadService.downloadFile(number);
+        documentDownloadService.downloadFile(wtDocumentObject, number);
 
         assertFalse(Files.exists(Paths.get("download")));
     }

@@ -1,14 +1,11 @@
 package com.dtc.automation.windchill.client.download;
 
-import com.dtc.automation.windchill.client.download.service.DocumentDownloadService;
-import com.dtc.automation.windchill.client.download.service.FileReaderService;
+import com.dtc.automation.windchill.client.download.service.WindchillDownloaderService;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.util.CollectionUtils;
 
 import java.io.Console;
 import java.io.IOException;
@@ -18,20 +15,15 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Base64;
 import java.util.HashSet;
-import java.util.Set;
-
-import static java.lang.String.format;
 
 @SpringBootApplication
 @Slf4j
 public class Runner implements CommandLineRunner {
 
-    static final String FILENAME = "doc_numbers.txt";
+    private static final String EXCEL_FILE_NAME = "doc_numbers.xlsx";
 
     @Autowired
-    private DocumentDownloadService documentDownloadService;
-    @Autowired
-    private FileReaderService fileReaderService;
+    private WindchillDownloaderService windchillDownloaderService;
 
     public static void main(String[] args) {
         Path tokenPath = Paths.get("token.temp");
@@ -66,20 +58,6 @@ public class Runner implements CommandLineRunner {
 
     @Override
     public void run(String... args) throws Exception {
-        Set<String> docNumbers = fileReaderService.readLines(FILENAME);
-        if (!CollectionUtils.isEmpty(docNumbers)) {
-                docNumbers.stream()
-                        .filter(s -> !StringUtils.isBlank(s))
-                        .map(String::trim)
-                        .forEach( number -> {
-                            try {
-                                documentDownloadService.downloadFile(number);
-                            } catch (Exception e) {
-                                log.error(format("Failed to download document with number %s", number), e);
-                            }
-                        });
-        } else {
-            log.warn("The file {} is empty. Please provide document numbers in the file", FILENAME);
-        }
+        windchillDownloaderService.processDocNumbersFromExcel(EXCEL_FILE_NAME);
     }
 }
