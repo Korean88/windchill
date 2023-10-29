@@ -58,6 +58,6 @@ public class Runner implements CommandLineRunner {
 
     @Override
     public void run(String... args) throws Exception {
-        windchillDownloaderService.processDocNumbersFromExcel(EXCEL_FILE_NAME);
+        windchillDownloaderService.processDocNumbersFromExcel(EXCEL_FILE_NAME, args[0]);
     }
 }

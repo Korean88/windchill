@@ -2,21 +2,21 @@ package com.dtc.automation.windchill.client.download.service;
 
 import com.dtc.automation.windchill.client.download.model.WtDocumentObject;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.poi.ss.usermodel.Cell;
-import org.apache.poi.ss.usermodel.CellStyle;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
-import org.apache.poi.xssf.usermodel.XSSFCellStyle;
-import org.apache.poi.xssf.usermodel.XSSFFont;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.stereotype.Service;
 
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Paths;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
@@ -26,6 +26,8 @@ import java.util.Set;
 public class WindchillDownloaderService {
 
     static final String WT_DOC_WTDOCUMENT = "wt.doc.WTDocument";
+    static final String REF_CHECK = "refcheck";
+    static final String DOWNLOAD = "download";
 
     private final DocumentDownloadService documentDownloadService;
     private final ObjectService objectService;
@@ -35,21 +37,17 @@ public class WindchillDownloaderService {
         this.objectService = objectService;
     }
 
-    public void processDocNumbersFromExcel(String filename) {
+    public void processDocNumbersFromExcel(String filename, String option) {
         File file = Paths.get(filename).toFile();
         try (FileInputStream excelFile = new FileInputStream(file);
-             XSSFWorkbook workbook = new XSSFWorkbook(excelFile);
-             FileOutputStream outputStream = new FileOutputStream(filename)) {
+             XSSFWorkbook workbook = new XSSFWorkbook(excelFile)) {
             Sheet datatypeSheet = workbook.getSheetAt(0);
-            CellStyle strikeThroughStyle = createStrikeThroughStyle(workbook);
             Set<String> uniqueDocNumbers = new HashSet<>();
             int numberOfRows = datatypeSheet.getPhysicalNumberOfRows();
             for (int i = 1; i < numberOfRows; i++) {
                 Row currentRow = datatypeSheet.getRow(i);
                 Cell docNumberCell = currentRow.getCell(0);
                 Cell versionCell = currentRow.getCell(1);
-                Cell actualVersionCell = currentRow.createCell(2);
-                Cell statusCell = currentRow.createCell(3);
 
                 String docNumber = docNumberCell.getStringCellValue();
                 if (StringUtils.isBlank(docNumber)) {
@@ -58,8 +56,15 @@ public class WindchillDownloaderService {
                     docNumber = docNumber.trim();
                 }
                 String version = versionCell.getStringCellValue();
+
+                StringBuilder htmlReport = createHtmlStart();
+                htmlReport.append("<tr>")
+                        .append("<td>").append(docNumber).append("</td>")
+                        .append("<td>").append(version).append("</td>");
                 if (uniqueDocNumbers.contains(docNumber)) {
-                    statusCell.setCellValue("duplicate");
+                    htmlReport.append("<td></td>")
+                            .append("<td>duplicate</td>")
+                            .append("</tr>");
                     continue;
                 }
                 uniqueDocNumbers.add(docNumber);
@@ -67,30 +72,54 @@ public class WindchillDownloaderService {
                 Optional<WtDocumentObject> wtDocumentOptional = objectService.fetchObject(WT_DOC_WTDOCUMENT, docNumber);
                 if (wtDocumentOptional.isPresent()) {
                     WtDocumentObject wtDocumentObject = wtDocumentOptional.get();
-                    if (documentDownloadService.downloadFile(wtDocumentObject, docNumber)) {
-                        statusCell.setCellValue("success");
+                    if (DOWNLOAD.equals(option)) {
+                        String status = documentDownloadService.downloadFile(wtDocumentObject, docNumber) ? "downloaded" : "failure";
+                        htmlReport.append("<td></td>")
+                                .append("<td>").append(status).append("</td>")
+                                .append("</tr>");
+                    } else if (REF_CHECK.equals(option)) {
                         String actualVersion = wtDocumentObject.getObjectAttributes().getVersion();
-                        if (!version.equals(actualVersion)) {
-                            versionCell.setCellStyle(strikeThroughStyle);
+                        if (version.equals(actualVersion)) {
+                            htmlReport.append("<td>").append(actualVersion).append("</td>")
+                                    .append("<td>checked</td>")
+                                    .append("</tr>");
+                        } else {
+                            htmlReport.append("<td bgcolor=#FFFF00>").append(actualVersion).append("</td>")
+                                    .append("<td>wrong revision</td>")
+                                    .append("</tr>");
                         }
-                        actualVersionCell.setCellValue(actualVersion);
-                    } else {
-                        statusCell.setCellValue("failed");
                     }
                 }
+                htmlReport.append("</table>")
+                        .append("</body>")
+                        .append("</html>");
+                SimpleDateFormat df = new SimpleDateFormat("YYYY-MMM-dd-hhmmss");
+                String timeSuffix = df.format(new Date());
+                File reportFile = new File("report-" + timeSuffix + ".html");
+                FileUtils.write(reportFile, htmlReport.toString(), StandardCharsets.UTF_8);
             }
-            workbook.write(outputStream);
         } catch (IOException e) {
-            log.error("Could not read/write xlsx file " + filename, e);
+            log.error("Could not read .xlsx file or create .html file", e);
         }
     }
 
-    private CellStyle createStrikeThroughStyle(XSSFWorkbook workbook) {
-        XSSFCellStyle style = workbook.createCellStyle();
-        XSSFFont font = workbook.createFont();
-        font.setStrikeout(true);
-        style.setFont(font);
-        return style;
+    private StringBuilder createHtmlStart() {
+        StringBuilder sb = new StringBuilder();
+        return sb.append("<html>")
+                .append("<style>")
+                .append("table, th, td {")
+                .append("  border: 1px solid black;")
+                .append("  border-collapse: collapse;")
+                .append("}")
+                .append("</style>")
+                .append("<body>")
+                .append("<table>")
+                .append("<tr>")
+                .append("<th>Doc Number<th3>")
+                .append("<th>Revision</th>")
+                .append("<th>Actual Revision</th>")
+                .append("<th>Status</th>")
+                .append("</tr>");
     }
 
 }
