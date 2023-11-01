@@ -56,14 +56,13 @@ class DocumentDownloadServiceTest {
         HttpEntity<String> requestEntity = new HttpEntity<>(requestHeaders);
         when(restTemplate.exchange(downloadUri, HttpMethod.GET, requestEntity, byte[].class))
                 .thenReturn(byteResponseEntity);
-        Path filePath = Paths.get("download", number, filename);
+        Path filePath = Paths.get("download", filename);
 
         boolean res = documentDownloadService.downloadFile(wtDocumentObject, number);
 
         assertTrue(res);
         assertTrue(Files.exists(filePath));
         Files.delete(Paths.get(filePath.toString()));
-        Files.delete(Paths.get("download", number));
         Files.delete(Paths.get("download"));
     }
 

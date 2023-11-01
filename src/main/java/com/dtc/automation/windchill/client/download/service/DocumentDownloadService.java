@@ -52,7 +52,7 @@ public class DocumentDownloadService {
                 if (responseEntity.getStatusCode() == HttpStatus.OK && responseEntity.hasBody()) {
                     log.debug("ResponseEntity: {}", responseEntity);
                     try {
-                        Path downloadPath = Paths.get("download", number);
+                        Path downloadPath = Paths.get("download");
                         Files.createDirectories(downloadPath);
                         Path filePath = Paths.get(downloadPath.toString(), filename);
                         Files.write(filePath, responseEntity.getBody(), StandardOpenOption.CREATE);
