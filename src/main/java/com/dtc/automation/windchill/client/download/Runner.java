@@ -13,6 +13,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
 import java.util.Base64;
 import java.util.HashSet;
 
@@ -26,6 +27,14 @@ public class Runner implements CommandLineRunner {
     private WindchillDownloaderService windchillDownloaderService;
 
     public static void main(String[] args) {
+        readTokenFile();
+
+        System.setProperty("javax.net.ssl.trustStore", "trust.jks");
+        System.setProperty("javax.net.ssl.trustStorePassword", "changeit");
+        SpringApplication.run(Runner.class, args).close();
+    }
+
+    private static void readTokenFile() {
         Path tokenPath = Paths.get("token.temp");
         if (Files.exists(tokenPath)) {
             try {
@@ -33,27 +42,32 @@ public class Runner implements CommandLineRunner {
                 if (lines.iterator().hasNext()) {
                     System.setProperty("token.encoded", lines.iterator().next());
                 } else {
-                    setLoginCreds();
+                    setLoginCreds(tokenPath);
                 }
             } catch (IOException e) {
                 log.error("Could not read token from token.temp", e);
             }
         } else {
-            setLoginCreds();
+            setLoginCreds(tokenPath);
         }
-
-        System.setProperty("javax.net.ssl.trustStore", "trust.jks");
-        System.setProperty("javax.net.ssl.trustStorePassword", "changeit");
-        SpringApplication.run(Runner.class, args).close();
     }
 
-    private static void setLoginCreds() {
+    private static void setLoginCreds(Path tokenPath) {
         Console console = System.console();
         StringBuilder name = new StringBuilder(console.readLine("Enter username: "));
         char[] password = console.readPassword("Enter password: ");
+        String saveToFile = console.readLine("Save credentials? [y|n]: ");
         name.append(":").append(password);
         String tokenEncoded = Base64.getEncoder().encodeToString(name.toString().getBytes(StandardCharsets.UTF_8));
         System.setProperty("token.encoded", tokenEncoded);
+
+        if ("y".equalsIgnoreCase(saveToFile)) {
+            try {
+                Files.write(tokenPath, tokenEncoded.getBytes(StandardCharsets.UTF_8), StandardOpenOption.CREATE);
+            } catch (IOException e) {
+                log.error("Could not save token", e);
+            }
+        }
     }
 
     @Override

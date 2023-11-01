@@ -44,6 +44,7 @@ public class WindchillDownloaderService {
             Sheet datatypeSheet = workbook.getSheetAt(0);
             Set<String> uniqueDocNumbers = new HashSet<>();
             int numberOfRows = datatypeSheet.getPhysicalNumberOfRows();
+            StringBuilder htmlReport = createHtmlStart();
             for (int i = 1; i < numberOfRows; i++) {
                 Row currentRow = datatypeSheet.getRow(i);
                 Cell docNumberCell = currentRow.getCell(0);
@@ -57,7 +58,6 @@ public class WindchillDownloaderService {
                 }
                 String version = versionCell.getStringCellValue();
 
-                StringBuilder htmlReport = createHtmlStart();
                 htmlReport.append("<tr>")
                         .append("<td>").append(docNumber).append("</td>")
                         .append("<td>").append(version).append("</td>");
@@ -89,15 +89,19 @@ public class WindchillDownloaderService {
                                     .append("</tr>");
                         }
                     }
+                } else {
+                    htmlReport.append("<td></td>")
+                            .append("<td>not found</td>")
+                            .append("</tr>");
                 }
-                htmlReport.append("</table>")
-                        .append("</body>")
-                        .append("</html>");
-                SimpleDateFormat df = new SimpleDateFormat("YYYY-MMM-dd-hhmmss");
-                String timeSuffix = df.format(new Date());
-                File reportFile = new File("report-" + timeSuffix + ".html");
-                FileUtils.write(reportFile, htmlReport.toString(), StandardCharsets.UTF_8);
             }
+            htmlReport.append("</table>")
+                    .append("</body>")
+                    .append("</html>");
+            SimpleDateFormat df = new SimpleDateFormat("YYYY-MMM-dd-hhmmss");
+            String timeSuffix = df.format(new Date());
+            File reportFile = new File("report-" + option + "-" + timeSuffix + ".html");
+            FileUtils.write(reportFile, htmlReport.toString(), StandardCharsets.UTF_8);
         } catch (IOException e) {
             log.error("Could not read .xlsx file or create .html file", e);
         }

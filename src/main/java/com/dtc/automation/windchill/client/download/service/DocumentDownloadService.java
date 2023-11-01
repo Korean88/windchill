@@ -1,6 +1,5 @@
 package com.dtc.automation.windchill.client.download.service;
 
-import com.dtc.automation.windchill.client.download.model.ObjectAttributes;
 import com.dtc.automation.windchill.client.download.model.WtDocumentObject;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.*;
@@ -15,8 +14,6 @@ import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.util.Arrays;
 import java.util.Optional;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import static java.lang.String.format;
 
